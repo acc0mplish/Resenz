@@ -1,0 +1,111 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <AssemblyName>Resenz</AssemblyName>
+    <ApplicationIcon>Assets\AppIcon.ico</ApplicationIcon>
+    <TargetFramework>net10.0-windows10.0.26100.0</TargetFramework>
+    <TargetPlatformMinVersion>10.0.17763.0</TargetPlatformMinVersion>
+    <WindowsSdkPackageVersion>10.0.26100.80</WindowsSdkPackageVersion>
+    <LangVersion>preview</LangVersion>
+    <RootNamespace>Resenz.App</RootNamespace>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <Platforms>x86;x64;ARM64</Platforms>
+    <RuntimeIdentifier Condition="'$(RuntimeIdentifier)' == ''">win-$([System.Runtime.InteropServices.RuntimeInformation]::ProcessArchitecture.ToString().ToLowerInvariant())</RuntimeIdentifier>
+    <UseWinUI>true</UseWinUI>
+    <WindowsAppSDKSelfContained>true</WindowsAppSDKSelfContained>
+    <WindowsPackageType>None</WindowsPackageType>
+    <WinUISDKReferences>false</WinUISDKReferences>
+    <EnableMsixTooling>true</EnableMsixTooling>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Content Include="Assets\AppIcon.ico" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="Assets\AppIcon.png" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="Assets\TrayDefault.ico" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="Assets\TrayGreen.ico" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="Assets\TrayRed.ico" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="Assets\FlagsEmoji.ttf" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="Assets\flags\*.svg" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.WindowsDesktop.App.WindowsForms" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Manifest Include="$(ApplicationManifest)" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(DisableMsixProjectCapabilityAddedByProject)'!='true' and '$(EnableMsixTooling)'=='true'">
+    <ProjectCapability Include="Msix" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
+    <PackageReference Include="CommunityToolkit.WinUI.Controls.SettingsControls" Version="8.2.251219" />
+    <PackageReference Include="Microsoft.Windows.SDK.BuildTools" Version="10.0.28000.2705" />
+    <PackageReference Include="Microsoft.WindowsAppSDK" Version="2.4.0" />
+    <PackageReference Include="Microsoft.Windows.SDK.BuildTools.WinApp" Version="0.6.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Resenz.Core\Resenz.Core.csproj" />
+    <ProjectReference Include="..\Resenz.Elevated\Resenz.Elevated.csproj" ReferenceOutputAssembly="false" />
+  </ItemGroup>
+
+  <!-- 상승 호스트 실행 파일을 메인 프로그램 출력 디렉터리로 복사해 TUN 상승 때 호출. -->
+  <!-- 경로는 반드시 $(Platform) 포함: 빌드 때 -p:Platform=x64 지정 시 출력은 bin\Debug가 아니라 bin\x64\Debug. -->
+  <Target Name="CopyElevatedHost" AfterTargets="Build">
+    <PropertyGroup>
+      <ElevatedHostOutDir>$(MSBuildThisFileDirectory)..\Resenz.Elevated\bin\$(Platform)\$(Configuration)\$(TargetFramework)\$(RuntimeIdentifier)</ElevatedHostOutDir>
+      <ElevatedHostOutDirFallback>$(MSBuildThisFileDirectory)..\Resenz.Elevated\bin\$(Configuration)\$(TargetFramework)\$(RuntimeIdentifier)</ElevatedHostOutDirFallback>
+    </PropertyGroup>
+    <ItemGroup>
+      <ElevatedHostFile Include="$(ElevatedHostOutDir)\Resenz.Elevated.exe" Condition="Exists('$(ElevatedHostOutDir)\Resenz.Elevated.exe')" />
+      <ElevatedHostFile Include="$(ElevatedHostOutDirFallback)\Resenz.Elevated.exe" Condition="!Exists('$(ElevatedHostOutDir)\Resenz.Elevated.exe') AND Exists('$(ElevatedHostOutDirFallback)\Resenz.Elevated.exe')" />
+      <ElevatedHostFile Include="$(ElevatedHostOutDir)\Resenz.Elevated.dll" Condition="Exists('$(ElevatedHostOutDir)\Resenz.Elevated.dll')" />
+      <ElevatedHostFile Include="$(ElevatedHostOutDirFallback)\Resenz.Elevated.dll" Condition="!Exists('$(ElevatedHostOutDir)\Resenz.Elevated.dll') AND Exists('$(ElevatedHostOutDirFallback)\Resenz.Elevated.dll')" />
+      <ElevatedHostFile Include="$(ElevatedHostOutDir)\Resenz.Elevated.deps.json" Condition="Exists('$(ElevatedHostOutDir)\Resenz.Elevated.deps.json')" />
+      <ElevatedHostFile Include="$(ElevatedHostOutDirFallback)\Resenz.Elevated.deps.json" Condition="!Exists('$(ElevatedHostOutDir)\Resenz.Elevated.deps.json') AND Exists('$(ElevatedHostOutDirFallback)\Resenz.Elevated.deps.json')" />
+      <ElevatedHostFile Include="$(ElevatedHostOutDir)\Resenz.Elevated.runtimeconfig.json" Condition="Exists('$(ElevatedHostOutDir)\Resenz.Elevated.runtimeconfig.json')" />
+      <ElevatedHostFile Include="$(ElevatedHostOutDirFallback)\Resenz.Elevated.runtimeconfig.json" Condition="!Exists('$(ElevatedHostOutDir)\Resenz.Elevated.runtimeconfig.json') AND Exists('$(ElevatedHostOutDirFallback)\Resenz.Elevated.runtimeconfig.json')" />
+    </ItemGroup>
+    <Copy SourceFiles="@(ElevatedHostFile)" DestinationFolder="$(OutDir)" SkipUnchangedFiles="true" />
+  </Target>
+
+  <PropertyGroup Condition="'$(DisableHasPackageAndPublishMenuAddedByProject)'!='true' and '$(EnableMsixTooling)'=='true'">
+    <HasPackageAndPublishMenu>true</HasPackageAndPublishMenu>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <!-- WinUI 3의 XAML은 런타임 리플렉션에 의존. PublishTrimmed=true는 바인딩에 필요한 유형을 잘라내고,
+         시작 시 XamlParseException(ItemsRepeater.ItemsSource 바인딩 실패)을 유발함.
+         따라서 trimming을 반드시 꺼야 하며, 아래 RemoveUnusedRuntimeDlls로 용량을 줄임. -->
+    <!-- ReadyToRun 어셈블리를 네이티브 코드로 미리 컴파일해 패키지가 약 49 MB 증가(216→265).
+         이 앱은 상주하며 시작이 한 번이면 충분해 저울질한 끝에 기본 꺼짐. -->
+    <PublishTrimmed>False</PublishTrimmed>
+    <PublishReadyToRun>False</PublishReadyToRun>
+  </PropertyGroup>
+
+  <!-- 게시 후 이 프로젝트가 실행 중 전혀 쓰지 않는 런타임 구성 요소를 삭제: Windows ML(onnx/DirectML),
+       Windows AI, 검색, 위젯, WebView2, WinForms 디자이너 등, 약 55 MB 절약.
+       코어와 geodata는 여기 해당 없음, 앱 첫 실행 때 필요에 따라 다운로드. -->
+  <Target Name="RemoveUnusedRuntimeDlls" AfterTargets="Publish">
+    <ItemGroup>
+      <UnusedRuntimeDll Include="$(PublishDir)onnxruntime.dll" />
+      <UnusedRuntimeDll Include="$(PublishDir)DirectML.dll" />
+      <UnusedRuntimeDll Include="$(PublishDir)Microsoft.Windows.Search.dll" />
+      <UnusedRuntimeDll Include="$(PublishDir)Microsoft.Windows.Widgets.dll" />
+      <UnusedRuntimeDll Include="$(PublishDir)Microsoft.Windows.AI.MachineLearning.dll" />
+      <UnusedRuntimeDll Include="$(PublishDir)Microsoft.Windows.AI.Text.dll" />
+      <UnusedRuntimeDll Include="$(PublishDir)Microsoft.Windows.AI.Imaging.dll" />
+      <UnusedRuntimeDll Include="$(PublishDir)PerceptiveStreaming.dll" />
+      <UnusedRuntimeDll Include="$(PublishDir)Microsoft.Web.WebView2.Core.dll" />
+      <UnusedRuntimeDll Include="$(PublishDir)System.Windows.Forms.Design.dll" />
+    </ItemGroup>
+    <Delete Files="@(UnusedRuntimeDll)" ContinueOnError="true" />
+    <Message Importance="high" Text="사용하지 않는 런타임 구성 요소를 제거했습니다(Windows ML/AI/검색/위젯/WebView2/WinForms 디자이너)." />
+  </Target>
+</Project>

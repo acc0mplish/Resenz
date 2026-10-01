@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Page
+    x:Class="Resenz.App.Pages.RulesPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="using:Resenz.App.Controls"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:vm="using:Resenz.App.ViewModels"
+    mc:Ignorable="d">
+
+    <Grid RowSpacing="16">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <controls:PageHeader Grid.Row="0" MaxWidth="1064" Margin="36,24,36,0"
+                             Title="규칙"
+                             Subtitle="{x:Bind ViewModel.StatusText, Mode=OneWay}">
+            <controls:PageHeader.Actions>
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                    <TextBox Width="260" VerticalAlignment="Center"
+                             PlaceholderText="유형 / 내용 / 정책으로 필터"
+                             Text="{x:Bind ViewModel.Filter, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                    <Button VerticalAlignment="Center" MinWidth="0" Padding="12,4"
+                            Command="{x:Bind ViewModel.RestoreAllCommand}"
+                            Visibility="{x:Bind ViewModel.HasDisabled, Mode=OneWay, Converter={StaticResource BoolToVisibility}}"
+                            Content="전부 복원" />
+                    <Button VerticalAlignment="Center"
+                            Command="{x:Bind ViewModel.RefreshCommand}" Content="새로고침" />
+                </StackPanel>
+            </controls:PageHeader.Actions>
+        </controls:PageHeader>
+
+        <Grid Grid.Row="1" Style="{StaticResource CardStyle}" Padding="0,4,0,4"
+                Margin="36,0,36,24" MaxWidth="{StaticResource PageContentMaxWidth}">
+            <ListView ItemsSource="{x:Bind ViewModel.Items}" SelectionMode="None"
+                      Padding="0,0,0,16">
+                <ListView.HeaderTemplate>
+                    <DataTemplate>
+                        <Grid ColumnSpacing="12" Padding="16,8,16,8">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="48" />
+                                <ColumnDefinition Width="150" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="200" />
+                                <ColumnDefinition Width="90" />
+                                <ColumnDefinition Width="64" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" Style="{StaticResource CaptionTextBlockStyle}"
+                                       Foreground="{ThemeResource TextFillColorSecondaryBrush}" Text="#" />
+                            <TextBlock Grid.Column="1" Style="{StaticResource CaptionTextBlockStyle}"
+                                       Foreground="{ThemeResource TextFillColorSecondaryBrush}" Text="유형" />
+                            <TextBlock Grid.Column="2" Style="{StaticResource CaptionTextBlockStyle}"
+                                       Foreground="{ThemeResource TextFillColorSecondaryBrush}" Text="내용" />
+                            <TextBlock Grid.Column="3" Style="{StaticResource CaptionTextBlockStyle}"
+                                       Foreground="{ThemeResource TextFillColorSecondaryBrush}" Text="정책" />
+                            <TextBlock Grid.Column="4" Style="{StaticResource CaptionTextBlockStyle}"
+                                       Foreground="{ThemeResource TextFillColorSecondaryBrush}" Text="적중" />
+                            <TextBlock Grid.Column="5" Style="{StaticResource CaptionTextBlockStyle}"
+                                       Foreground="{ThemeResource TextFillColorSecondaryBrush}" Text="비활성화" />
+                        </Grid>
+                    </DataTemplate>
+                </ListView.HeaderTemplate>
+                <ListView.ItemContainerStyle>
+                    <Style TargetType="ListViewItem">
+                        <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                        <Setter Property="Padding" Value="0" />
+                        <Setter Property="MinHeight" Value="0" />
+                    </Style>
+                </ListView.ItemContainerStyle>
+                <ListView.ItemTemplate>
+                    <DataTemplate x:DataType="vm:RuleRowViewModel">
+                        <Grid ColumnSpacing="12" Padding="16,7">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="48" />
+                                <ColumnDefinition Width="150" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="200" />
+                                <ColumnDefinition Width="90" />
+                                <ColumnDefinition Width="64" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0"
+                                       Style="{StaticResource CaptionTextBlockStyle}"
+                                       Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                       Text="{x:Bind Index}" />
+                            <TextBlock Grid.Column="1"
+                                       VerticalAlignment="Center"
+                                       Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                       Text="{x:Bind Type}" />
+                            <TextBlock Grid.Column="2"
+                                       VerticalAlignment="Center"
+                                       TextTrimming="CharacterEllipsis"
+                                       Text="{x:Bind Payload}" />
+                            <TextBlock Grid.Column="3"
+                                       VerticalAlignment="Center"
+                                       TextTrimming="CharacterEllipsis"
+                                       Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}"
+                                       Text="{x:Bind Proxy}" />
+                            <TextBlock Grid.Column="4"
+                                       VerticalAlignment="Center"
+                                       Style="{StaticResource CaptionTextBlockStyle}"
+                                       Visibility="{x:Bind HasHit, Mode=OneTime, Converter={StaticResource BoolToVisibility}}"
+                                       Text="{x:Bind Size}" />
+                            <ToggleButton Grid.Column="5"
+                                           Width="28" Height="28"
+                                           MinWidth="0" Padding="0"
+                                           HorizontalAlignment="Left"
+                                           VerticalAlignment="Center"
+                                           Tag="{x:Bind}"
+                                           Click="Disable_Click"
+                                           ToolTipService.ToolTip="임시 비활성화(현재 세션만, 설정 리로드 후 복원)">
+                                <FontIcon FontSize="12" Glyph="&#xE74A;" />
+                            </ToggleButton>
+                        </Grid>
+                    </DataTemplate>
+                </ListView.ItemTemplate>
+            </ListView>
+        </Grid>
+    </Grid>
+</Page>

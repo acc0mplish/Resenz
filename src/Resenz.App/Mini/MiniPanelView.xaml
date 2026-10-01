@@ -1,0 +1,310 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<UserControl
+    x:Class="Resenz.App.Mini.MiniPanelView"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:local="using:Resenz.App.Mini"
+    xmlns:vm="using:Resenz.App.ViewModels"
+    mc:Ignorable="d">
+
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <Style x:Key="MiniModeButtonStyle" TargetType="ToggleButton"
+                   BasedOn="{StaticResource DefaultToggleButtonStyle}">
+                <Setter Property="MinWidth" Value="0" />
+                <Setter Property="Padding" Value="0,5" />
+                <Setter Property="HorizontalAlignment" Value="Stretch" />
+                <Setter Property="HorizontalContentAlignment" Value="Center" />
+            </Style>
+            <Style x:Key="MiniGroupRowStyle" TargetType="Grid">
+                <Setter Property="Padding" Value="10,6" />
+                <Setter Property="CornerRadius" Value="6" />
+                <Setter Property="Background" Value="{ThemeResource CardBackgroundFillColorDefaultBrush}" />
+                <Setter Property="BorderBrush" Value="{ThemeResource CardStrokeColorDefaultBrush}" />
+                <Setter Property="BorderThickness" Value="1" />
+            </Style>
+            <Style x:Key="MiniIconButtonStyle" TargetType="Button"
+                   BasedOn="{StaticResource DefaultButtonStyle}">
+                <Setter Property="Background" Value="Transparent" />
+                <Setter Property="BorderThickness" Value="0" />
+                <Setter Property="CornerRadius" Value="4" />
+                <Setter Property="Padding" Value="0" />
+                <Setter Property="Width" Value="28" />
+                <Setter Property="Height" Value="28" />
+                <Setter Property="MinWidth" Value="0" />
+                <Setter Property="HorizontalContentAlignment" Value="Center" />
+                <Setter Property="VerticalContentAlignment" Value="Center" />
+                <Setter Property="Foreground" Value="{ThemeResource TextFillColorPrimaryBrush}" />
+                <Setter Property="BackgroundSizing" Value="InnerBorderEdge" />
+            </Style>
+            <Style x:Key="MiniStopButtonStyle" TargetType="Button"
+                   BasedOn="{StaticResource DefaultButtonStyle}">
+                <Setter Property="Background" Value="#C42B1C" />
+                <Setter Property="BorderThickness" Value="0" />
+                <Setter Property="CornerRadius" Value="4" />
+                <Setter Property="Padding" Value="0" />
+                <Setter Property="Width" Value="28" />
+                <Setter Property="Height" Value="28" />
+                <Setter Property="MinWidth" Value="0" />
+                <Setter Property="HorizontalContentAlignment" Value="Center" />
+                <Setter Property="VerticalContentAlignment" Value="Center" />
+            </Style>
+        </ResourceDictionary>
+    </UserControl.Resources>
+
+    <Grid x:Name="RootGrid" Padding="16,12,16,12" RowSpacing="10" Background="Transparent">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <Border
+            x:Name="SolidBackdrop"
+            Grid.RowSpan="4"
+            Margin="-16,-12,-16,-12"
+            Background="{ThemeResource SolidBackgroundFillColorBaseBrush}"
+            Visibility="Collapsed" />
+
+        <Grid Grid.Row="0" ColumnSpacing="8">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <Image Width="20" Height="20" VerticalAlignment="Center" Source="ms-appx:///Assets/AppIcon.png" />
+            <TextBlock Grid.Column="1"
+                       VerticalAlignment="Center"
+                       Style="{StaticResource BodyStrongTextBlockStyle}"
+                       Text="Resenz" />
+            <Grid Grid.Column="3" Width="28" Height="28" VerticalAlignment="Center">
+                <ProgressRing Width="16" Height="16"
+                              HorizontalAlignment="Center" VerticalAlignment="Center"
+                              IsActive="{x:Bind ViewModel.IsUpdatingSubscription, Mode=OneWay}"
+                              Visibility="{x:Bind ViewModel.IsUpdatingSubscription, Mode=OneWay, Converter={StaticResource BoolToVisibility}}" />
+                <Button Style="{StaticResource MiniIconButtonStyle}"
+                        Visibility="{x:Bind ViewModel.IsUpdatingSubscription, Mode=OneWay, Converter={StaticResource InverseBoolToVisibility}}"
+                        ToolTipService.ToolTip="구독 업데이트"
+                        Command="{x:Bind ViewModel.UpdateSubscriptionCommand}">
+                    <FontIcon FontSize="12" Glyph="&#xE895;" />
+                </Button>
+            </Grid>
+            <Button Grid.Column="4" Style="{StaticResource MiniStopButtonStyle}"
+                    Visibility="{x:Bind ViewModel.IsRunning, Mode=OneWay, Converter={StaticResource BoolToVisibility}}"
+                    ToolTipService.ToolTip="코어 정지"
+                    Command="{x:Bind ViewModel.ToggleCoreCommand}">
+                <Button.Resources>
+                    <ResourceDictionary>
+                        <ResourceDictionary.ThemeDictionaries>
+                            <ResourceDictionary x:Key="Light">
+                                <SolidColorBrush x:Key="ButtonBackgroundPointerOver" Color="#B02616" />
+                                <SolidColorBrush x:Key="ButtonBackgroundPressed" Color="#9B2113" />
+                            </ResourceDictionary>
+                            <ResourceDictionary x:Key="Dark">
+                                <SolidColorBrush x:Key="ButtonBackgroundPointerOver" Color="#D13423" />
+                                <SolidColorBrush x:Key="ButtonBackgroundPressed" Color="#B02616" />
+                            </ResourceDictionary>
+                        </ResourceDictionary.ThemeDictionaries>
+                    </ResourceDictionary>
+                </Button.Resources>
+                <FontIcon FontSize="12" Foreground="White" Glyph="&#xE71A;" />
+            </Button>
+            <Button Grid.Column="4" Style="{StaticResource MiniIconButtonStyle}"
+                    Visibility="{x:Bind ViewModel.IsRunning, Mode=OneWay, Converter={StaticResource InverseBoolToVisibility}}"
+                    ToolTipService.ToolTip="코어 시작"
+                    Command="{x:Bind ViewModel.ToggleCoreCommand}">
+                <FontIcon FontSize="12" Glyph="&#xE768;" />
+            </Button>
+            <Button Grid.Column="5" MinWidth="0" Padding="10,4"
+                    VerticalAlignment="Center"
+                    ToolTipService.ToolTip="메인 화면 열기"
+                    Click="OpenFull_Click"
+                    Content="메인 화면" />
+            <Button Grid.Column="6" MinWidth="0"
+                    Width="28" Height="28" Padding="0"
+                    VerticalAlignment="Center"
+                    HorizontalContentAlignment="Center"
+                    ToolTipService.ToolTip="접기"
+                    Click="Collapse_Click">
+                <FontIcon FontSize="12" Glyph="&#xE70D;" />
+            </Button>
+        </Grid>
+
+        <Grid Grid.Row="1" ColumnSpacing="16">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+            <StackPanel Grid.Column="0" Spacing="2">
+                <TextBlock Style="{StaticResource CaptionTextBlockStyle}"
+                           Foreground="{ThemeResource TextFillColorSecondaryBrush}" Text="업로드" />
+                <TextBlock Style="{StaticResource BodyStrongTextBlockStyle}" Text="{x:Bind ViewModel.UpRate, Mode=OneWay}" />
+            </StackPanel>
+            <StackPanel Grid.Column="1" Spacing="2">
+                <TextBlock Style="{StaticResource CaptionTextBlockStyle}"
+                           Foreground="{ThemeResource TextFillColorSecondaryBrush}" Text="다운로드" />
+                <TextBlock Style="{StaticResource BodyStrongTextBlockStyle}" Text="{x:Bind ViewModel.DownRate, Mode=OneWay}" />
+            </StackPanel>
+            <StackPanel Grid.Column="2" Spacing="2">
+                <TextBlock Style="{StaticResource CaptionTextBlockStyle}"
+                           Foreground="{ThemeResource TextFillColorSecondaryBrush}" Text="상태" />
+                <StackPanel Orientation="Horizontal" Spacing="6">
+                    <Ellipse Width="8" Height="8" VerticalAlignment="Center"
+                             Fill="{x:Bind ViewModel.StateKey, Mode=OneWay, Converter={StaticResource StateToBrush}}" />
+                    <TextBlock Style="{StaticResource BodyStrongTextBlockStyle}" Text="{x:Bind ViewModel.CoreStateText, Mode=OneWay}" />
+                </StackPanel>
+            </StackPanel>
+        </Grid>
+
+        <Grid Grid.Row="2" RowSpacing="8">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+
+            <Grid Grid.Row="0" ColumnSpacing="6">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <ToggleButton x:Name="ModeRuleButton" Grid.Column="0"
+                              Style="{StaticResource MiniModeButtonStyle}"
+                              Content="규칙" Tag="0" Click="ModeButton_Click"
+                              ToolTipService.ToolTip="규칙 모드: 설정 규칙대로 분류" />
+                <ToggleButton x:Name="ModeGlobalButton" Grid.Column="1"
+                              Style="{StaticResource MiniModeButtonStyle}"
+                              Content="전역" Tag="1" Click="ModeButton_Click"
+                              ToolTipService.ToolTip="전역 모드: 모든 트래픽 프록시 경유" />
+                <ToggleButton x:Name="ModeDirectButton" Grid.Column="2"
+                              Style="{StaticResource MiniModeButtonStyle}"
+                              Content="직접 연결" Tag="2" Click="ModeButton_Click"
+                              ToolTipService.ToolTip="직접 모드: 모든 트래픽 프록시 미경유" />
+            </Grid>
+
+            <Grid Grid.Row="1" ColumnSpacing="12">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                    <TextBlock VerticalAlignment="Center"
+                               Style="{StaticResource CaptionTextBlockStyle}"
+                               Text="시스템 프록시" />
+                    <ToggleSwitch x:Name="SystemProxySwitch"
+                                  MinWidth="0"
+                                  OnContent="" OffContent=""
+                                  Toggled="SystemProxy_Toggled"
+                                  ToolTipService.ToolTip="시스템 프록시" />
+                </StackPanel>
+                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                    <TextBlock VerticalAlignment="Center"
+                               Style="{StaticResource CaptionTextBlockStyle}"
+                               Text="TUN" />
+                    <ToggleSwitch x:Name="TunSwitch"
+                                  MinWidth="0"
+                                  OnContent="" OffContent=""
+                                  Toggled="Tun_Toggled"
+                                  ToolTipService.ToolTip="TUN 모드(관리자 권한 필요, 전환 시 코어 재시작)" />
+                </StackPanel>
+            </Grid>
+        </Grid>
+
+        <Grid Grid.Row="3">
+            <TextBlock HorizontalAlignment="Center"
+                       VerticalAlignment="Center"
+                       Style="{StaticResource CaptionTextBlockStyle}"
+                       Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                       TextAlignment="Center"
+                       TextWrapping="Wrap"
+                       Text="코어 미실행. 먼저 시작하세요"
+                       Visibility="{x:Bind ViewModel.HasGroups, Mode=OneWay, Converter={StaticResource InverseBoolToVisibility}}" />
+
+            <ListView Padding="0"
+                      ItemsSource="{x:Bind ViewModel.Groups}"
+                      SelectionMode="None"
+                      ScrollViewer.HorizontalScrollMode="Disabled"
+                      ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                      Visibility="{x:Bind ViewModel.HasGroups, Mode=OneWay, Converter={StaticResource BoolToVisibility}}">
+                <ListView.ItemContainerStyle>
+                    <Style TargetType="ListViewItem">
+                        <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                        <Setter Property="Padding" Value="0" />
+                        <Setter Property="MinHeight" Value="0" />
+                        <Setter Property="Margin" Value="0,0,0,6" />
+                    </Style>
+                </ListView.ItemContainerStyle>
+                <ListView.ItemTemplate>
+                    <DataTemplate x:DataType="local:MiniProxyGroupViewModel">
+                        <Grid Style="{StaticResource MiniGroupRowStyle}" ColumnSpacing="8">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0"
+                                       VerticalAlignment="Center"
+                                       Style="{StaticResource BodyStrongTextBlockStyle}"
+                                       FontFamily="{StaticResource NodeNameFontFamily}"
+                                       TextTrimming="CharacterEllipsis"
+                                       Text="{x:Bind Name}" />
+                            <Grid Grid.Column="1" Width="28" Height="28" VerticalAlignment="Center">
+                                <ProgressRing Width="16" Height="16"
+                                              HorizontalAlignment="Center" VerticalAlignment="Center"
+                                              IsActive="{x:Bind IsTesting, Mode=OneWay}"
+                                              Visibility="{x:Bind IsTesting, Mode=OneWay, Converter={StaticResource BoolToVisibility}}" />
+                                <Button Style="{StaticResource MiniIconButtonStyle}"
+                                        Visibility="{x:Bind IsTesting, Mode=OneWay, Converter={StaticResource InverseBoolToVisibility}}"
+                                        ToolTipService.ToolTip="다시 측정"
+                                        Tag="{x:Bind}"
+                                        Click="TestGroup_Click">
+                                    <FontIcon FontSize="12" Glyph="&#xE9D9;" />
+                                </Button>
+                            </Grid>
+                            <ComboBox Grid.Column="2"
+                                      Width="180"
+                                      VerticalAlignment="Center"
+                                      FontFamily="{StaticResource NodeNameFontFamily}"
+                                      PlaceholderText="노드 선택"
+                                      ItemsSource="{x:Bind Nodes}"
+                                      SelectedItem="{x:Bind Selected, Mode=OneWay}"
+                                      SelectionChanged="Node_SelectionChanged"
+                                      Tag="{x:Bind}">
+                                <ComboBox.ItemTemplate>
+                                    <DataTemplate x:DataType="local:MiniProxyNodeViewModel">
+                                        <Grid ColumnSpacing="6">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto" />
+                                                <ColumnDefinition Width="Auto" />
+                                                <ColumnDefinition Width="*" />
+                                            </Grid.ColumnDefinitions>
+                                            <TextBlock Grid.Column="0"
+                                                       MaxWidth="96"
+                                                       VerticalAlignment="Center"
+                                                       FontFamily="{StaticResource NodeNameFontFamily}"
+                                                       TextTrimming="CharacterEllipsis"
+                                                       Text="{x:Bind Name}" />
+                                            <TextBlock Grid.Column="1"
+                                                       VerticalAlignment="Center"
+                                                       FontSize="12"
+                                                       Foreground="{x:Bind DelayKey, Converter={StaticResource DelayToBrush}}"
+                                                       Text="{x:Bind DelayText}" />
+                                        </Grid>
+                                    </DataTemplate>
+                                </ComboBox.ItemTemplate>
+                            </ComboBox>
+                        </Grid>
+                    </DataTemplate>
+                </ListView.ItemTemplate>
+            </ListView>
+        </Grid>
+    </Grid>
+</UserControl>

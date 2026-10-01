@@ -1,0 +1,196 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Page
+    x:Class="Resenz.App.Pages.ProxiesPage"
+    x:Name="PageRoot"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="using:Resenz.App.Controls"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:vm="using:Resenz.App.ViewModels"
+    mc:Ignorable="d">
+
+    <Grid RowSpacing="16">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <controls:PageHeader Grid.Row="0" MaxWidth="1064" Margin="36,24,36,0"
+                             Title="프록시 그룹과 노드"
+                             Subtitle="{x:Bind ViewModel.StatusText, Mode=OneWay}">
+            <controls:PageHeader.Actions>
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                    <ComboBox Width="150"
+                              VerticalAlignment="Center"
+                              SelectedIndex="{x:Bind ViewModel.SortIndex, Mode=TwoWay}">
+                        <ComboBoxItem Content="기본 순서" />
+                        <ComboBoxItem Content="지연순 정렬" />
+                        <ComboBoxItem Content="이름순 정렬" />
+                    </ComboBox>
+                    <Button VerticalAlignment="Center"
+                            Command="{x:Bind ViewModel.TestAllCommand}" Content="전체 측정" />
+                    <Button VerticalAlignment="Center"
+                            Command="{x:Bind ViewModel.RefreshCommand}" Content="새로고침" />
+                </StackPanel>
+            </controls:PageHeader.Actions>
+        </controls:PageHeader>
+
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto"
+                      Padding="36,0,36,0">
+            <Border>
+            <ItemsControl ItemsSource="{x:Bind ViewModel.Groups}" MaxWidth="{StaticResource PageContentMaxWidth}" Margin="0,0,0,24">
+                <!-- 펼치기/접기 때 다른 프록시 그룹이 순간 점프 대신 부드럽게 이동 -->
+                <ItemsControl.ItemContainerTransitions>
+                    <TransitionCollection>
+                        <RepositionThemeTransition />
+                        <EntranceThemeTransition />
+                    </TransitionCollection>
+                </ItemsControl.ItemContainerTransitions>
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="vm:ProxyGroupViewModel">
+                        <Expander HorizontalAlignment="Stretch"
+                                  HorizontalContentAlignment="Stretch"
+                                  CornerRadius="8"
+                                  Margin="0,0,0,12"
+                                  Padding="12,0,12,12"
+                                  IsExpanded="{x:Bind IsExpanded, Mode=TwoWay}">
+                            <Expander.Header>
+                                <Grid Padding="0,8,0,8" ColumnSpacing="10">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+
+                                    <!-- 그룹 이름 확대, 현재 노드는 같은 행 바로 뒤에 배치. 전체는 헤더에서 세로 중앙, 내부 텍스트는 베이스라인 정렬 -->
+                                    <StackPanel Grid.Column="0"
+                                                Orientation="Horizontal"
+                                                Spacing="10"
+                                                VerticalAlignment="Center">
+                                        <TextBlock FontSize="18" FontWeight="SemiBold"
+                                                   FontFamily="{StaticResource NodeNameFontFamily}"
+                                                   TextTrimming="CharacterEllipsis"
+                                                   TextLineBounds="TrimToBaseline"
+                                                   VerticalAlignment="Bottom"
+                                                   Text="{x:Bind Name}" />
+                                        <TextBlock FontSize="13"
+                                                   VerticalAlignment="Bottom"
+                                                   FontFamily="{StaticResource NodeNameFontFamily}"
+                                                   Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}"
+                                                   TextTrimming="CharacterEllipsis"
+                                                   TextLineBounds="TrimToBaseline"
+                                                   Text="{x:Bind NowText, Mode=OneWay}" />
+                                    </StackPanel>
+
+                                    <!-- 측정 영역 폭 고정으로 진행 링/아이콘 전환 시 그룹 이름이 가로로 밀리지 않게 함 -->
+                                    <Grid Grid.Column="1" Width="32" Height="32"
+                                          VerticalAlignment="Center">
+                                        <ProgressRing Width="18" Height="18"
+                                                      HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                      IsActive="{x:Bind IsBusy, Mode=OneWay}"
+                                                      Visibility="{x:Bind IsBusy, Mode=OneWay, Converter={StaticResource BoolToVisibility}}" />
+                                        <Button Style="{StaticResource IconButtonStyle}"
+                                                HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                Command="{x:Bind TestCommand}" ToolTipService.ToolTip="측정"
+                                                Visibility="{x:Bind IsBusy, Mode=OneWay, Converter={StaticResource InverseBoolToVisibility}}">
+                                            <FontIcon FontSize="14" Glyph="&#xE9D9;" />
+                                        </Button>
+                                    </Grid>
+                                </Grid>
+                            </Expander.Header>
+
+                            <ItemsRepeater Margin="0,8,0,0"
+                                           ItemsSource="{x:Bind Nodes}">
+                                <ItemsRepeater.Layout>
+                                    <UniformGridLayout MinItemWidth="240"
+                                                       MinItemHeight="40"
+                                                       MinColumnSpacing="8"
+                                                       MinRowSpacing="8"
+                                                       ItemsStretch="Fill" />
+                                </ItemsRepeater.Layout>
+                                <ItemsRepeater.ItemTemplate>
+                                    <DataTemplate x:DataType="vm:ProxyItemViewModel">
+                                        <Grid>
+                                            <!-- 아래층: 기본 테마 외곽선 + 선택 상태 채움.
+                                                 ControlStrokeColorDefaultBrush 사용: 다크에서는 밝은 외곽선, 라이트에서는 어두운 외곽선 -->
+                                            <Grid CornerRadius="6"
+                                                    BorderThickness="1"
+                                                    BorderBrush="{ThemeResource ControlStrokeColorDefaultBrush}"
+                                                    Background="{x:Bind IsSelected, Mode=OneWay, Converter={StaticResource SelectedToBrush}}" />
+                                            <!-- 중간층: 클릭으로 노드 선택(스스로 테두리 없음, 아래층 외곽선 덮지 않게) -->
+                                            <Button Style="{StaticResource NodeButtonStyle}"
+                                                    AutomationProperties.Name="{x:Bind Name}"
+                                                    Click="Node_Click"
+                                                    Tag="{x:Bind}">
+                                                <Button.Resources>
+                                                    <ResourceDictionary>
+                                                        <ResourceDictionary.ThemeDictionaries>
+                                                            <ResourceDictionary x:Key="Default">
+                                                                <SolidColorBrush x:Key="ButtonBackgroundPointerOver" Color="#1AFFFFFF" />
+                                                                <SolidColorBrush x:Key="ButtonBackgroundPressed" Color="#26FFFFFF" />
+                                                            </ResourceDictionary>
+                                                            <ResourceDictionary x:Key="Dark">
+                                                                <SolidColorBrush x:Key="ButtonBackgroundPointerOver" Color="#1AFFFFFF" />
+                                                                <SolidColorBrush x:Key="ButtonBackgroundPressed" Color="#26FFFFFF" />
+                                                            </ResourceDictionary>
+                                                            <ResourceDictionary x:Key="Light">
+                                                                <SolidColorBrush x:Key="ButtonBackgroundPointerOver" Color="#0F000000" />
+                                                                <SolidColorBrush x:Key="ButtonBackgroundPressed" Color="#1A000000" />
+                                                            </ResourceDictionary>
+                                                        </ResourceDictionary.ThemeDictionaries>
+                                                    </ResourceDictionary>
+                                                </Button.Resources>
+                                                <Grid ColumnSpacing="8">
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="*" />
+                                                        <ColumnDefinition Width="Auto" />
+                                                    </Grid.ColumnDefinitions>
+                                                    <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                                                        <TextBlock VerticalAlignment="Center"
+                                                                   FontSize="18"
+                                                                   FontFamily="{StaticResource NodeNameFontFamily}"
+                                                                   Text="{x:Bind IconText}" />
+                                                        <TextBlock VerticalAlignment="Center"
+                                                                   FontSize="15"
+                                                                   FontFamily="{StaticResource NodeNameFontFamily}"
+                                                                   TextTrimming="CharacterEllipsis"
+                                                                   Text="{x:Bind DisplayName}" />
+                                                    </StackPanel>
+                                                    <!-- 지연 곧 측정: 측정 중 회전 링 표시, 완료 후 지연 숫자 표시 및 클릭 재측정 -->
+                                                    <Grid Grid.Column="1"
+                                                          MinWidth="56"
+                                                          VerticalAlignment="Center"
+                                                          Tag="{x:Bind}"
+                                                          ToolTipService.ToolTip="클릭 측정">
+                                                        <ProgressRing Width="16" Height="16"
+                                                                      HorizontalAlignment="Right" VerticalAlignment="Center"
+                                                                      IsActive="{x:Bind IsTesting, Mode=OneWay}"
+                                                                      Visibility="{x:Bind IsTesting, Mode=OneWay, Converter={StaticResource BoolToVisibility}}" />
+                                                        <Button Style="{StaticResource DelayButtonStyle}"
+                                                                HorizontalAlignment="Right"
+                                                                Content="{x:Bind DelayText, Mode=OneWay}"
+                                                                Foreground="{x:Bind DelayKey, Mode=OneWay, Converter={StaticResource DelayToBrush}}"
+                                                                Tag="{x:Bind}"
+                                                                Click="NodeTest_Click"
+                                                                Visibility="{x:Bind IsTesting, Mode=OneWay, Converter={StaticResource InverseBoolToVisibility}}" />
+                                                    </Grid>
+                                                </Grid>
+                                            </Button>
+                                            <!-- 최상층: 선택 상태 강조색 외곽선, 맨 위 배치. 미선택 시 투명하고 히트 테스트 미참여 -->
+                                            <Grid CornerRadius="6"
+                                                    BorderThickness="1"
+                                                    IsHitTestVisible="False"
+                                                    Background="Transparent"
+                                                    BorderBrush="{x:Bind IsSelected, Mode=OneWay, Converter={StaticResource SelectedBorderBrush}}" />
+                                        </Grid>
+                                    </DataTemplate>
+                                </ItemsRepeater.ItemTemplate>
+                            </ItemsRepeater>
+                        </Expander>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+            </Border>
+        </ScrollViewer>
+    </Grid>
+</Page>

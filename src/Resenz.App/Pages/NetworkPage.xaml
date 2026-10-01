@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Page
+    x:Class="Resenz.App.Pages.NetworkPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="using:Resenz.App.Controls"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:vm="using:Resenz.App.ViewModels"
+    mc:Ignorable="d">
+
+    <Grid RowSpacing="16">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <controls:PageHeader Grid.Row="0" MaxWidth="1064" Margin="36,24,36,0"
+                             Title="네트워크"
+                             Subtitle="{x:Bind ViewModel.StatusText, Mode=OneWay}">
+            <controls:PageHeader.Actions>
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                    <Button Command="{x:Bind ViewModel.CheckExitIpCommand}" Content="출구 IP 검사" />
+                    <Button Command="{x:Bind ViewModel.TestAllCommand}" Content="전체 지연 측정" />
+                </StackPanel>
+            </controls:PageHeader.Actions>
+        </controls:PageHeader>
+
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto"
+                      Padding="36,0,36,24">
+            <Border>
+            <StackPanel Spacing="12" MaxWidth="{StaticResource PageContentMaxWidth}">
+
+                <!-- 출구 IP 카드 -->
+                <Grid Style="{StaticResource CardStyle}" Padding="16,14">
+                    <StackPanel Spacing="8">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                                <TextBlock Style="{StaticResource CaptionTextBlockStyle}"
+                                           Foreground="{ThemeResource TextFillColorSecondaryBrush}" Text="현재 출구 IP" />
+                            </StackPanel>
+                            <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                                <ProgressRing Width="16" Height="16"
+                                              IsActive="{x:Bind ViewModel.IsCheckingExit, Mode=OneWay}"
+                                              Visibility="{x:Bind ViewModel.IsCheckingExit, Mode=OneWay, Converter={StaticResource BoolToVisibility}}" />
+                                <Button Style="{StaticResource IconButtonStyle}" Width="28" Height="28"
+                                        ToolTipService.ToolTip="IP 복사"
+                                        Click="CopyIp_Click"
+                                        Visibility="{x:Bind ViewModel.HasExitIp, Mode=OneWay, Converter={StaticResource BoolToVisibility}}">
+                                    <FontIcon FontSize="12" Glyph="&#xE8C8;" />
+                                </Button>
+                            </StackPanel>
+                        </Grid>
+                        <TextBlock Style="{StaticResource SubtitleTextBlockStyle}" Text="{x:Bind ViewModel.ExitIp, Mode=OneWay}" />
+                        <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                            <Image Width="20" Height="15" VerticalAlignment="Center"
+                                   Source="{x:Bind ViewModel.ExitFlag, Mode=OneWay, Converter={StaticResource SvgImageSource}}" />
+                            <TextBlock Style="{StaticResource CaptionTextBlockStyle}"
+                                       Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                       VerticalAlignment="Center"
+                                       Text="{x:Bind ViewModel.ExitCountry, Mode=OneWay}" />
+                        </StackPanel>
+                    </StackPanel>
+                </Grid>
+
+                <!-- 지연 측정 -->
+                <Grid Style="{StaticResource CardStyle}" Padding="16,14">
+                    <StackPanel Spacing="8">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock VerticalAlignment="Center"
+                                       Style="{StaticResource BodyStrongTextBlockStyle}" Text="네트워크 지연" />
+                            <ProgressRing Grid.Column="1" Width="18" Height="18"
+                                          IsActive="{x:Bind ViewModel.IsTestingAll, Mode=OneWay}"
+                                          Visibility="{x:Bind ViewModel.IsTestingAll, Mode=OneWay, Converter={StaticResource BoolToVisibility}}" />
+                        </Grid>
+                        <ItemsControl ItemsSource="{x:Bind ViewModel.Targets}">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <ItemsWrapGrid Orientation="Horizontal"
+                                                   MaximumRowsOrColumns="2" />
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate x:DataType="vm:LatencyTargetViewModel">
+                                    <Grid ColumnSpacing="10" MinWidth="230" Padding="4,8">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Grid.Column="0" VerticalAlignment="Center"
+                                                   FontSize="13"
+                                                   TextTrimming="CharacterEllipsis"
+                                                   Text="{x:Bind Name}" />
+                                        <ProgressRing Grid.Column="1" Width="12" Height="12"
+                                                      IsActive="{x:Bind IsTesting, Mode=OneWay}"
+                                                      Visibility="{x:Bind IsTesting, Mode=OneWay, Converter={StaticResource BoolToVisibility}}" />
+                                        <TextBlock Grid.Column="2" VerticalAlignment="Center"
+                                                   FontSize="13" FontWeight="SemiBold"
+                                                   Text="{x:Bind LatencyText, Mode=OneWay}" />
+                                    </Grid>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
+                </Grid>
+            </StackPanel>
+            </Border>
+        </ScrollViewer>
+    </Grid>
+</Page>

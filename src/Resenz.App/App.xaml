@@ -1,0 +1,184 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Application
+    x:Class="Resenz.App.App"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:converters="using:Resenz.App.Converters">
+    <Application.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <XamlControlsResources xmlns="using:Microsoft.UI.Xaml.Controls" />
+            </ResourceDictionary.MergedDictionaries>
+
+            <converters:BoolToVisibilityConverter x:Key="BoolToVisibility" />
+            <converters:InverseBoolToVisibilityConverter x:Key="InverseBoolToVisibility" />
+            <converters:InverseBoolConverter x:Key="InverseBool" />
+            <converters:StateToBrushConverter x:Key="StateToBrush" />
+            <converters:DelayToBrushConverter x:Key="DelayToBrush" />
+            <converters:LogLevelToBrushConverter x:Key="LogLevelToBrush" />
+            <converters:SelectedToBrushConverter x:Key="SelectedToBrush" />
+            <converters:SelectedBorderBrushConverter x:Key="SelectedBorderBrush" />
+            <converters:SvgImageSourceConverter x:Key="SvgImageSource" />
+
+            <!-- 페이지 콘텐츠 최대 폭: Windows 설정의 폭 제한 중앙 정렬 패턴에 맞춤 -->
+            <x:Double x:Key="PageContentMaxWidth">1064</x:Double>
+
+            <!-- 제목 표시줄 우측에 약간의 드래그 영역을 남겨 상단 바 컨트롤과 창 버튼 사이에 약 4px 간격 확보 -->
+            <x:Double x:Key="TitleBarMinDragRegionWidth">4</x:Double>
+
+            <!-- 콘텐츠 영역이 Mica 배경을 비쳐 보이게 함: NavigationView 기본 반투명 회색 레이어(LayerFillColorDefaultBrush)를 덮음 -->
+            <SolidColorBrush x:Key="NavigationViewContentBackground" Color="Transparent" />
+
+            <!-- 탐색 페이지 내부 구분선 제거: 탐색 모음과 콘텐츠 영역 사이 세로선, 콘텐츠 영역 상단 가로선 -->
+            <SolidColorBrush x:Key="NavigationViewItemSeparatorForeground" Color="Transparent" />
+            <SolidColorBrush x:Key="NavigationViewContentGridBorderBrush" Color="Transparent" />
+
+            <!-- 카드 컨테이너는 Border 대신 Grid 사용: Border에서 CornerRadius를 동시에 설정하면 + BorderThickness + Background
+                 일 때 배경과 외곽선이 두 visual로 분리되어 모서리에 이음선이 생김(microsoft-ui-xaml#9454).
+                 Grid 단일 visual로 만들어 모서리를 부드럽게 처리. 공식 Gallery와 SettingsCard도 카드 담는 데 Grid를 사용 -->
+            <Style x:Key="CardStyle" TargetType="Grid">
+                <Setter Property="Background" Value="{ThemeResource CardBackgroundFillColorDefaultBrush}" />
+                <Setter Property="BorderBrush" Value="{ThemeResource CardStrokeColorDefaultBrush}" />
+                <Setter Property="BorderThickness" Value="1" />
+                <Setter Property="CornerRadius" Value="8" />
+            </Style>
+
+            <!-- 페이지 루트 컨테이너: 투명으로 Mica 배경 비춤 -->
+            <Style x:Key="PageRootStyle" TargetType="Page">
+                <Setter Property="Background" Value="Transparent" />
+            </Style>
+
+            <Style x:Key="RateUpBrush" TargetType="TextBlock">
+                <Setter Property="Foreground" Value="{ThemeResource SystemFillColorCautionBrush}" />
+            </Style>
+
+            <Style x:Key="RateDownBrush" TargetType="TextBlock">
+                <Setter Property="Foreground" Value="{ThemeResource SystemFillColorSuccessBrush}" />
+            </Style>
+
+            <Style x:Key="TagChipStyle" TargetType="Grid">
+                <Setter Property="Background" Value="{ThemeResource CardBackgroundFillColorSecondaryBrush}" />
+                <Setter Property="BorderBrush" Value="{ThemeResource CardStrokeColorDefaultBrush}" />
+                <Setter Property="BorderThickness" Value="1" />
+                <Setter Property="CornerRadius" Value="4" />
+                <Setter Property="Padding" Value="6,2" />
+                <Setter Property="VerticalAlignment" Value="Center" />
+                <Setter Property="MaxWidth" Value="320" />
+            </Style>
+
+            <!-- 노드 이름 폰트: 국기 글리프는 FlagsEmoji 우선 사용(Windows는 Win10부터 Segoe UI Emoji의 국기 합자를 제거했으며,
+                 🇺🇸 US 두 글자로 저하됨). 나머지 글리프(라틴/한자/일반 emoji)는 시스템 폰트로 폴백 -->
+            <FontFamily x:Key="NodeNameFontFamily">ms-appx:///Assets/FlagsEmoji.ttf#Twemoji Mozilla, Segoe UI, Microsoft YaHei UI, Segoe UI Emoji</FontFamily>
+
+            <!-- 노드 버튼: 원본 Button 템플릿 직접 사용(hover/눌림 채움은 시스템이 담당),
+                 스스로는 테두리 없음. 외곽선은 바깥 Border가 제공해 hover 때 덮어쓰지 않게 함. -->
+            <Style x:Key="NodeButtonStyle" TargetType="Button" BasedOn="{StaticResource DefaultButtonStyle}">
+                <Setter Property="Background" Value="Transparent" />
+                <Setter Property="BorderThickness" Value="0" />
+                <Setter Property="CornerRadius" Value="6" />
+                <Setter Property="Padding" Value="12,8" />
+                <Setter Property="HorizontalAlignment" Value="Stretch" />
+                <Setter Property="VerticalAlignment" Value="Stretch" />
+                <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                <Setter Property="VerticalContentAlignment" Value="Center" />
+                <Setter Property="Foreground" Value="{ThemeResource TextFillColorPrimaryBrush}" />
+            </Style>
+
+            <!-- 지연 텍스트 곧 측정 버튼: 테두리 없음, 컴팩트, 클릭 시 해당 노드만 측정 -->
+            <Style x:Key="DelayButtonStyle" TargetType="Button" BasedOn="{StaticResource DefaultButtonStyle}">
+                <Setter Property="Background" Value="Transparent" />
+                <Setter Property="BorderThickness" Value="0" />
+                <Setter Property="CornerRadius" Value="4" />
+                <Setter Property="Padding" Value="6,2" />
+                <Setter Property="MinWidth" Value="0" />
+                <Setter Property="VerticalAlignment" Value="Center" />
+                <Setter Property="FontSize" Value="13" />
+                <Setter Property="FontWeight" Value="SemiBold" />
+            </Style>
+
+            <!-- 아이콘 전용 기능 버튼: ghost 정사각형, 호버 시 연한 배경(프록시 그룹 펼침 버튼과 동일) -->
+            <Style x:Key="IconButtonStyle" TargetType="Button" BasedOn="{StaticResource DefaultButtonStyle}">
+                <Setter Property="Background" Value="Transparent" />
+                <Setter Property="BorderThickness" Value="0" />
+                <Setter Property="CornerRadius" Value="4" />
+                <Setter Property="Padding" Value="0" />
+                <Setter Property="Width" Value="32" />
+                <Setter Property="Height" Value="32" />
+                <Setter Property="MinWidth" Value="0" />
+                <Setter Property="HorizontalContentAlignment" Value="Center" />
+                <Setter Property="VerticalContentAlignment" Value="Center" />
+                <Setter Property="Foreground" Value="{ThemeResource TextFillColorPrimaryBrush}" />
+                <Setter Property="BackgroundSizing" Value="InnerBorderEdge" />
+            </Style>
+
+            <!-- 툴바 버튼: ghost 텍스트/아이콘 버튼, 높이 32와 모서리 반경 통일, 호버 시 연한 배경 -->
+            <Style x:Key="ToolbarButtonStyle" TargetType="Button" BasedOn="{StaticResource DefaultButtonStyle}">
+                <Setter Property="Background" Value="Transparent" />
+                <Setter Property="BorderThickness" Value="0" />
+                <Setter Property="CornerRadius" Value="4" />
+                <Setter Property="Padding" Value="12,0" />
+                <Setter Property="Height" Value="32" />
+                <Setter Property="MinWidth" Value="0" />
+                <Setter Property="HorizontalContentAlignment" Value="Center" />
+                <Setter Property="VerticalContentAlignment" Value="Center" />
+                <Setter Property="Foreground" Value="{ThemeResource TextFillColorPrimaryBrush}" />
+                <Setter Property="BackgroundSizing" Value="InnerBorderEdge" />
+            </Style>
+
+            <!-- 툴바 토글: ToolbarButtonStyle과 외관 일치. 선택 상태는 강조색 채움 대신 연한 배경을 사용해 시선을 빼앗지 않게 함 -->
+            <Style x:Key="ToolbarToggleButtonStyle" TargetType="ToggleButton" BasedOn="{StaticResource DefaultToggleButtonStyle}">
+                <Setter Property="Background" Value="Transparent" />
+                <Setter Property="BorderThickness" Value="0" />
+                <Setter Property="CornerRadius" Value="4" />
+                <Setter Property="Padding" Value="12,0" />
+                <Setter Property="Height" Value="32" />
+                <Setter Property="MinWidth" Value="0" />
+                <Setter Property="HorizontalContentAlignment" Value="Center" />
+                <Setter Property="VerticalContentAlignment" Value="Center" />
+                <Setter Property="Foreground" Value="{ThemeResource TextFillColorPrimaryBrush}" />
+                <Setter Property="BackgroundSizing" Value="InnerBorderEdge" />
+            </Style>
+
+            <!-- 위험 조작 버튼: 파괴적 동작(예: 전부 닫기)은 시스템 경고색 전경을 쓰고 채움을 약화해 오조작을 줄임 -->
+            <Style x:Key="DangerButtonStyle" TargetType="Button" BasedOn="{StaticResource DefaultButtonStyle}">
+                <Setter Property="Background" Value="Transparent" />
+                <Setter Property="BorderThickness" Value="0" />
+                <Setter Property="CornerRadius" Value="4" />
+                <Setter Property="Padding" Value="12,0" />
+                <Setter Property="Height" Value="32" />
+                <Setter Property="MinWidth" Value="0" />
+                <Setter Property="HorizontalContentAlignment" Value="Center" />
+                <Setter Property="VerticalContentAlignment" Value="Center" />
+                <Setter Property="Foreground" Value="{ThemeResource SystemFillColorCriticalBrush}" />
+                <Setter Property="BackgroundSizing" Value="InnerBorderEdge" />
+            </Style>
+
+            <!-- 카드 헤더 전체 행 클릭 가능: 카드 너비를 꽉 채우고 내부 여백은 카드 본문과 일치시켜 좌측 정렬 유지, 호버 시 연한 배경 -->
+            <Style x:Key="CardHeaderButtonStyle" TargetType="Button" BasedOn="{StaticResource DefaultButtonStyle}">
+                <Setter Property="Background" Value="Transparent" />
+                <Setter Property="BorderThickness" Value="0" />
+                <Setter Property="CornerRadius" Value="8,8,0,0" />
+                <Setter Property="Padding" Value="16,14" />
+                <Setter Property="MinHeight" Value="0" />
+                <Setter Property="HorizontalAlignment" Value="Stretch" />
+                <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                <Setter Property="VerticalContentAlignment" Value="Center" />
+                <Setter Property="Foreground" Value="{ThemeResource TextFillColorPrimaryBrush}" />
+            </Style>
+
+            <!-- 홈 탐색 카드: 카드 전체 클릭 이동, 카드 외관 + hover/pressed 가벼운 피드백 -->
+            <Style x:Key="DashboardCardButtonStyle" TargetType="Button" BasedOn="{StaticResource DefaultButtonStyle}">
+                <Setter Property="Background" Value="{ThemeResource CardBackgroundFillColorDefaultBrush}" />
+                <Setter Property="BorderBrush" Value="{ThemeResource CardStrokeColorDefaultBrush}" />
+                <Setter Property="BorderThickness" Value="1" />
+                <Setter Property="CornerRadius" Value="8" />
+                <Setter Property="Padding" Value="16,14" />
+                <Setter Property="MinHeight" Value="0" />
+                <Setter Property="HorizontalAlignment" Value="Stretch" />
+                <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                <Setter Property="VerticalContentAlignment" Value="Stretch" />
+                <Setter Property="Foreground" Value="{ThemeResource TextFillColorPrimaryBrush}" />
+            </Style>
+        </ResourceDictionary>
+    </Application.Resources>
+</Application>
